@@ -10,7 +10,7 @@
 int main (int argc, char ** argv) {
     int xsize, ysize, colmax,radius;
     pixel * src= (pixel *) calloc ( MAX_PIXELS, sizeof(pixel) );
-    double * w= (double *) calloc ( MAX_RAD+1, sizeof(pixel) );
+    double * w= (double *) calloc ( MAX_RAD+1, sizeof(double) );
     struct timespec stime, etime;
 
 
