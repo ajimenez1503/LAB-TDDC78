@@ -9,3 +9,7 @@ Two simple image transformation algorithms. The transformations are from an inpu
   * Averaging Filter:
     The value for a pixel (x, y) in the output image is the normalized weighted sum of all the pixels in a
 rectangle in the input image centred around (x, y).
+### Build the project:
+ * Install: `sudo apt-get install libcr-dev mpich2 mpich2-doc`
+ * Compile: `make`
+ * Run: bash `run.sh`
