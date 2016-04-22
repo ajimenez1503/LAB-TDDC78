@@ -10,9 +10,9 @@ then
     if [  "$radious"  -ge  1 ] &&  [ "$radious"  -le  1000 ]
     then
         echo "correct radious"
-        echo "Type the image to apply the filter (im1.ppm | im2.ppm |im3.ppm), followed by [ENTER]:"
+        echo "Type the image to apply the filter (im1.ppm | im2.ppm |im3.ppm|im4.ppm), followed by [ENTER]:"
         read origenFile
-        if [  "$origenFile"  == "im1.ppm" ] || [ "$origenFile"  == "im2.ppm"  ] || [  "$origenFile"  == "im3.ppm" ]
+        if [  "$origenFile"  == "im1.ppm" ] || [ "$origenFile"  == "im2.ppm"  ] || [  "$origenFile"  == "im3.ppm" ]|| [  "$origenFile"  == "im4.ppm" ]
         then
             echo "correct name"
             #./blurc 50 ../../originalImag/"$origenFile" ../../newImag/"$origenFile"

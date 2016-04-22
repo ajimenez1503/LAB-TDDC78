@@ -15,9 +15,10 @@ int main (int argc, char ** argv) {
 
 
     int rank, np;
+    MPI_Comm com = MPI_COMM_WORLD;
     MPI_Init (&argc, &argv);      /* starts MPI */
-    MPI_Comm_rank (MPI_COMM_WORLD, &rank);        /* get current process id */
-    MPI_Comm_size (MPI_COMM_WORLD, &np);        /* get number of processes */
+    MPI_Comm_rank (com, &rank);        /* get current process id */
+    MPI_Comm_size (com, &np);        /* get number of processes */
     //printf("id %d of %d\n",rank,np);
 
     /* Take care of the arguments */

@@ -15,7 +15,7 @@ pixel* pix(pixel* image,int xx,int yy, const int xsize)
     return (image + off);
 }
 void blurfilter(int xsize,int ysize, pixel* src, int radius, double *w){
-	
+
 
    /////////////Define type
     MPI_Datatype PIXEL_MPI; // MPI type to commit
@@ -31,25 +31,23 @@ void blurfilter(int xsize,int ysize, pixel* src, int radius, double *w){
     /////////////Define type
 
     int np=0,rank=0;
-    MPI_Comm_size (MPI_COMM_WORLD, &np);        // get number of processes
-    MPI_Comm_rank (MPI_COMM_WORLD, &rank);        // get current process id
     MPI_Comm com = MPI_COMM_WORLD;
+    MPI_Comm_size (com, &np);        // get number of processes
+    MPI_Comm_rank (com, &rank);        // get current process id
+
     MPI_Bcast( &ysize, 1, MPI_INT, 0, com );
     MPI_Bcast( &xsize, 1, MPI_INT, 0, com );
     MPI_Bcast( &radius, 1, MPI_INT, 0, com );
     MPI_Bcast( w, radius+1, MPI_DOUBLE, 0, com );//all need to read the weight
     int lysize=ysize/np;//number of row (of xsize pixel) per processors.
     int lsize=xsize*lysize;//number of pixel per processsors
-	
+
     int x=0,y=0,x2=0,y2=0, wi=0;
     double r=0.0,g=0.0,b=0.0,n=0.0, wc=0.0;
-    //pixel * src_local= calloc ( lsize,sizeof(pixel) );
-    //pixel * dst_local= calloc ( lsize,sizeof(pixel) );
-    pixel src_local[lsize];// local buffer
-    pixel dst_local[lsize];// local buffer
-	//printf("id %d of %d\n",rank,np);
-    pixel * dst= calloc ( xsize*ysize,sizeof(pixel) );
-	
+    pixel * src_local=(pixel *) calloc ( lsize,sizeof(pixel) );
+    pixel * dst_local= (pixel *)calloc ( lsize,sizeof(pixel) );
+    pixel * dst= (pixel *)calloc ( xsize*ysize,sizeof(pixel) );
+
 
     MPI_Scatter( src, lsize, PIXEL_MPI,src_local,lsize, PIXEL_MPI, 0,com);//divide the src between the processsors in src_local
 
@@ -93,7 +91,7 @@ void blurfilter(int xsize,int ysize, pixel* src, int radius, double *w){
 				wc = w[wi];
 				aux_y=y+lysize*rank;
 				y2 = aux_y - wi;
-			
+
 				if(y2 >= 0) {
 				    r += wc * pix(dst, x, y2, xsize)->r;
 				    g += wc * pix(dst, x, y2, xsize)->g;
@@ -116,7 +114,7 @@ void blurfilter(int xsize,int ysize, pixel* src, int radius, double *w){
 
     MPI_Gather( src_local, lsize, PIXEL_MPI,src, lsize, PIXEL_MPI, 0, com );
     free (dst);
+    free(dst_local);
+    free(src_local);
     MPI_Type_free(&PIXEL_MPI);
-    //free(dst_local);
-    //free(src_local);
 }
