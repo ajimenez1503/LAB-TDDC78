@@ -9,7 +9,7 @@
 int main (int argc, char ** argv) {
     int xsize=0, ysize=0, colmax=0,size=0;
     pixel * src_total;
-    src_total= (pixel *) malloc ( MAX_PIXELS );
+    src_total= (pixel *) calloc ( MAX_PIXELS ,sizeof(pixel));
     struct timespec stime, etime;
 
     int rank, np;
