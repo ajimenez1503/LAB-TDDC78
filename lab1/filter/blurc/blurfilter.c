@@ -15,7 +15,7 @@ pixel* pix(pixel* image,int xx,int yy, const int xsize)
     return (image + off);
 }
 void blurfilter(int xsize,int ysize, pixel* src, int radius, double *w){
-
+	
 
    /////////////Define type
     MPI_Datatype PIXEL_MPI; // MPI type to commit
@@ -40,15 +40,16 @@ void blurfilter(int xsize,int ysize, pixel* src, int radius, double *w){
     MPI_Bcast( w, radius+1, MPI_DOUBLE, 0, com );//all need to read the weight
     int lysize=ysize/np;//number of row (of xsize pixel) per processors.
     int lsize=xsize*lysize;//number of pixel per processsors
-
+	
     int x=0,y=0,x2=0,y2=0, wi=0;
     double r=0.0,g=0.0,b=0.0,n=0.0, wc=0.0;
     //pixel * src_local= calloc ( lsize,sizeof(pixel) );
     //pixel * dst_local= calloc ( lsize,sizeof(pixel) );
     pixel src_local[lsize];// local buffer
     pixel dst_local[lsize];// local buffer
+	//printf("id %d of %d\n",rank,np);
     pixel * dst= calloc ( xsize*ysize,sizeof(pixel) );
-
+	
 
     MPI_Scatter( src, lsize, PIXEL_MPI,src_local,lsize, PIXEL_MPI, 0,com);//divide the src between the processsors in src_local
 
@@ -80,38 +81,40 @@ void blurfilter(int xsize,int ysize, pixel* src, int radius, double *w){
             pix(dst_local,x,y, xsize)->b = b/n;
         }
     }
-    MPI_Gather( dst_local, lsize, PIXEL_MPI,dst, lsize, PIXEL_MPI, 0, com );
-    if (rank==0){
-        for (y=0; y<ysize; y++) {
-            for (x=0; x<xsize; x++) {
-                r =  pix(dst, x, y, xsize)->r;
-                g =  pix(dst, x, y, xsize)->g;
-                b =  pix(dst, x, y, xsize)->b;
-                n = 1;
-                for ( wi=1; wi <= radius; wi++) {
-                    wc = w[wi];
-                    y2 = y - wi;
-                    if(y2 >= 0) {
-                        r += wc * pix(dst, x, y2, xsize)->r;
-                        g += wc * pix(dst, x, y2, xsize)->g;
-                        b += wc * pix(dst, x, y2, xsize)->b;
-                        n += wc;
-                    }
-                    y2 = y + wi;
-                    if(y2 < ysize) {
-                        r += wc * pix(dst, x, y2, xsize)->r;
-                        g += wc * pix(dst, x, y2, xsize)->g;
-                        b += wc * pix(dst, x, y2, xsize)->b;
-                        n += wc;
-                    }
-                }
-                pix(src,x,y, xsize)->r = r/n;
-                pix(src,x,y, xsize)->g = g/n;
-                pix(src,x,y, xsize)->b = b/n;
-            }
-        }
+    MPI_Allgather( dst_local, lsize, PIXEL_MPI,dst, lsize, PIXEL_MPI,com );
+	int aux_y=0;
+	for (y=0; y<lysize; y++) {
+	    for (x=0; x<xsize; x++) {
+			r =  pix(dst_local, x, y, xsize)->r;
+			g =  pix(dst_local, x, y, xsize)->g;
+			b =  pix(dst_local, x, y, xsize)->b;
+			n = 1;
+			for ( wi=1; wi <= radius; wi++) {
+				wc = w[wi];
+				aux_y=y+lysize*rank;
+				y2 = aux_y - wi;
+			
+				if(y2 >= 0) {
+				    r += wc * pix(dst, x, y2, xsize)->r;
+				    g += wc * pix(dst, x, y2, xsize)->g;
+				    b += wc * pix(dst, x, y2, xsize)->b;
+				    n += wc;
+				}
+				y2 = aux_y + wi;
+				if(y2 < ysize) {
+				    r += wc * pix(dst, x, y2, xsize)->r;
+				    g += wc * pix(dst, x, y2, xsize)->g;
+				    b += wc * pix(dst, x, y2, xsize)->b;
+				    n += wc;
+				}
+			}
+			pix(src_local,x,y, xsize)->r = r/n;
+			pix(src_local,x,y, xsize)->g = g/n;
+			pix(src_local,x,y, xsize)->b = b/n;
+	    }
+	}
 
-    }
+    MPI_Gather( src_local, lsize, PIXEL_MPI,src, lsize, PIXEL_MPI, 0, com );
     free (dst);
     MPI_Type_free(&PIXEL_MPI);
     //free(dst_local);

@@ -9,8 +9,8 @@
 
 int main (int argc, char ** argv) {
     int xsize, ysize, colmax,radius;
-    pixel * src= (pixel *) malloc ( MAX_PIXELS );
-    double * w= (double *) malloc ( MAX_RAD+1 );
+    pixel * src= (pixel *) calloc ( MAX_PIXELS, sizeof(pixel) );
+    double * w= (double *) calloc ( MAX_RAD+1, sizeof(pixel) );
     struct timespec stime, etime;
 
 
