@@ -12,4 +12,4 @@ rectangle in the input image centred around (x, y).
 ### Build the project:
  * Install: `sudo apt-get install libcr-dev mpich2 mpich2-doc`
  * Compile: `make`
- * Run: bash `run.sh`
+ * Run: `bash run.sh`
