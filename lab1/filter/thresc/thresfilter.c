@@ -21,7 +21,8 @@ void thresfilter(int size,pixel* src_total){
     MPI_Comm com = MPI_COMM_WORLD;
     MPI_Bcast( &size, 1, MPI_INT, 0, com );
     int lsize = size / np; // local problem size
-    pixel src_local[lsize];//crateh the local buffer
+    pixel * src_local;
+    src_local= (pixel *) calloc ( lsize ,sizeof(pixel));
     MPI_Scatter( src_total, lsize, PIXEL_MPI,src_local,lsize, PIXEL_MPI, 0,com);//divide the src between the processsors
 
 
@@ -46,6 +47,7 @@ void thresfilter(int size,pixel* src_total){
     }
 
     //gather the buffer of every processors  in id==0
-    MPI_Gather( &src_local, lsize, PIXEL_MPI,src_total, lsize, PIXEL_MPI, 0, com );
+    MPI_Gather( src_local, lsize, PIXEL_MPI,src_total, lsize, PIXEL_MPI, 0, com );
+    free(src_local);
     MPI_Type_free(&PIXEL_MPI);
 }
