@@ -17,20 +17,19 @@ typedef struct _pixel {
 } pixel;
 
 typedef struct thread_data{
-	pixel* src_local;
     int ybegin;
     int yend;
-    int xsize;
-    int ysize;
-    double *w;
-    int radius;
 }thread_data ;
 
-static  pixel *  dst;
-static pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;//mutex for calculate on sumtotla
-static int number_threads_arrive=0;//check that all the thread write in SumTotal
 
-void initDst(int xsize,int ysize);
+static pixel * src_local;
+static int xsize,ysize,radius;
+static  pixel *  dst;
+static double *w;
+static pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;//mutex for calculate on sumtotla
+static int number_threads_arrived=0;//check that all the thread write in SumTotal
+
+void initMemory(int xsize,int ysize,int radius, pixel* src, double *w);//init shared memory
 void FreeDst();
 void *blurfilter(void *data);
 

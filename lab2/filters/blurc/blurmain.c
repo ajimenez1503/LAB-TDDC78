@@ -50,16 +50,11 @@ int main (int argc, char ** argv) {
     int lysize=ysize/NUM_THREADS;//number of row (of xsize pixel) per thread.
     int i=0;
     for(i=0;i<NUM_THREADS;i++){
-		thread_data_array[i].src_local = src;
         thread_data_array[i].ybegin = lysize*i;
         thread_data_array[i].yend = lysize*(i+1);
-        thread_data_array[i].xsize=xsize;
-		thread_data_array[i].ysize=ysize;
-        thread_data_array[i].w = w;
-        thread_data_array[i].radius=radius;
 	}
-    //init dst filter
-    initDst(xsize,ysize);
+    //init memory filter
+    initMemory(xsize,ysize,radius,src, w);
     clock_gettime(CLOCK_REALTIME, &stime);
 
     for(i=0;i<NUM_THREADS;i++){

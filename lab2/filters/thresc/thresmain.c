@@ -38,11 +38,12 @@ int main (int argc, char ** argv) {
     int lsize=size/NUM_THREADS;
     int i=0;
     for(i=0;i<NUM_THREADS;i++){
-		thread_data_array[i].src_local = src_total;
 		thread_data_array[i].sum=0;
         thread_data_array[i].begin = lsize*i;
 		thread_data_array[i].end=lsize*(i+1);
 	}
+    //init memory filter
+    initMemory(src_total);
     //printf("Has read the image, calling filter\n");
     clock_gettime(CLOCK_REALTIME, &stime);
     //thresfilter(size, src_total);

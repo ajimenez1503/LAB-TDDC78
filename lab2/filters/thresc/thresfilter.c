@@ -1,6 +1,8 @@
 #include "thresfilter.h"
-
-#define uint unsigned int
+//init shared memory
+void initMemory( pixel* src){
+    src_local=src;
+}
 
 void * thresfilter(void *data)
 {
@@ -8,7 +10,7 @@ void * thresfilter(void *data)
 	myData = (struct thread_data *) data;
 	int i=0;
     for(i = myData->begin; i <myData->end; i++) {
-        myData->sum += (uint)myData->src_local[i].r + (uint)myData->src_local[i].g + (uint)myData->src_local[i].b;
+        myData->sum += (uint)src_local[i].r + (uint)src_local[i].g + (uint)src_local[i].b;
     }
 	pthread_mutex_lock( &mutex1 );
 	   	SumTotal+=myData->sum;
@@ -24,12 +26,12 @@ void * thresfilter(void *data)
    	pthread_mutex_unlock( &mutex1 );
 	int psum=0;
 	for(i = myData->begin; i <myData->end; i++) {
-        psum = (uint)myData->src_local[i].r + (uint)myData->src_local[i].g + (uint)myData->src_local[i].b;
+        psum = (uint)src_local[i].r + (uint)src_local[i].g + (uint)src_local[i].b;
         if(myData->sum > psum) {
-            myData->src_local[i].r = myData->src_local[i].g = myData->src_local[i].b = 0;
+            src_local[i].r = src_local[i].g = src_local[i].b = 0;
         }
         else {
-            myData->src_local[i].r = myData->src_local[i].g = myData->src_local[i].b = 255;
+            src_local[i].r = src_local[i].g = src_local[i].b = 255;
         }
     }
    	pthread_exit(NULL);
