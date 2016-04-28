@@ -16,6 +16,10 @@ use omp_lib
 	integer															:: chuck
 	double precision,dimension(1:n,0:2*number_thread) :: helper !matrix (n)x(2*number_thread). 2 per thread 
   
+  if(number_thread/=omp_get_num_procs()) then
+     write(unit=*,fmt=*) 'Number of thread must be =',number_thread,' EXIT'
+     call EXIT(0)
+  end if
   ! Set boundary conditions and initial values for the unknowns
   T=0.0D0	!all the matrix equal 0
   T(0:n+1 , 0)     = 1.0D0 ! first column equal 1
@@ -25,6 +29,7 @@ use omp_lib
 	 
 	chuck=n/number_thread !calculate chuck
 	write(unit=*,fmt=*) 'Number of thread=',number_thread,', chuck=',chuck    
+
 	
 	i=0 
 	do j=0,number_thread -1 ! from from 0 to 2*number_thread
