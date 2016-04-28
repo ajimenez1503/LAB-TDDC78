@@ -6,7 +6,7 @@ use omp_lib
 !-----------------------------------------------------------------------
 !PROBLEM: n must be divisible between number of thread.
 	integer, parameter									:: number_thread=4
-  integer, parameter                  :: n=20, maxiter=1000 ! constant never change
+  integer, parameter                  :: n=1000, maxiter=1000 ! constant never change
   double precision,parameter          :: tol=1.0E-3
   double precision,dimension(0:n+1,0:n+1) :: T !matrix (n+1)x(n+1)
   double precision,dimension(n)       :: tmp1,tmp2,tmp3 !array of size n
@@ -64,27 +64,22 @@ use omp_lib
 				  !write(unit=*,fmt=*) 'j=',j,"i=",(j/chuck)+OMP_GET_THREAD_NUM()
           tmp2=T(1:n,j)
           T(1:n,j)=(T(0:n-1,j)+T(2:n+1,j)+T(1:n,j+1)+tmp1)/4.0D0
-          error=max(error,maxval(abs(tmp2-T(1:n,j))))
-          tmp1=tmp2
 			  else if (mod(j,chuck)==0) then
 				  tmp3=helper(1:n,((j+1)/chuck)+OMP_GET_THREAD_NUM())
 				  !write(unit=*,fmt=*) 'j=',j ,"i=",((j+1)/chuck)+OMP_GET_THREAD_NUM()
           tmp2=T(1:n,j)
           T(1:n,j)=(T(0:n-1,j)+T(2:n+1,j)+tmp3+tmp1)/4.0D0
-          error=max(error,maxval(abs(tmp2-T(1:n,j))))
-          tmp1=tmp2
         else
           tmp2=T(1:n,j)
           T(1:n,j)=(T(0:n-1,j)+T(2:n+1,j)+T(1:n,j+1)+tmp1)/4.0D0
+			  end if
           error=max(error,maxval(abs(tmp2-T(1:n,j))))
           tmp1=tmp2
-			  end if
       end do
     !$omp end do
     !$OMP END PARALLEL
      
      if (error<tol) then
-         write(unit=*,fmt=*) 'Error'
         exit
      end if
      
