@@ -21,7 +21,7 @@ program serialLaplsolv
   
 
   ! Solve the linear system of equations using the Jacobi method
-  t0=omp_get_wtime()
+  call cpu_time(t0)
   
   do k=1,maxiter
      
@@ -41,7 +41,7 @@ program serialLaplsolv
      
   end do
   
-  t1=omp_get_wtime()
+  call cpu_time(t1)
 
   write(unit=*,fmt=*) 'Time:',t1-t0,'Number of Iterations:',k
   write(unit=*,fmt=*) 'Temperature of element T(1,1)  =',T(1,1)

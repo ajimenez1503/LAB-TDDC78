@@ -5,7 +5,7 @@ use omp_lib
 ! on a square using the Jacobi method. 
 !-----------------------------------------------------------------------
 !PROBLEM: n must be divisible between number of thread.
-	integer, parameter									:: number_thread=4
+	integer, parameter									:: number_thread=5
   integer, parameter                  :: n=1000, maxiter=1000 ! constant never change
   double precision,parameter          :: tol=1.0E-3
   double precision,dimension(0:n+1,0:n+1) :: T !matrix (n+1)x(n+1)
@@ -16,7 +16,9 @@ use omp_lib
 	integer															:: chuck
 	double precision,dimension(1:n,0:2*number_thread) :: helper !matrix (n)x(2*number_thread). 2 per thread 
   
-  if(number_thread/=omp_get_num_procs()) then
+
+	CALL OMP_SET_NUM_THREADS(number_thread)
+  if(number_thread/=omp_get_max_threads()) then
      write(unit=*,fmt=*) 'Number of thread must be =',number_thread,' EXIT'
      call EXIT(0)
   end if
