@@ -13,9 +13,9 @@ int main (int argc, char ** argv) {
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);        // get current process id
     MPI_Comm_size (MPI_COMM_WORLD, &np);       // get number of processes
     MPI_Comm com = MPI_COMM_WORLD;
-    printf("ID= %d of number of processors %d\n",rank,np );
+    //printf("ID= %d of number of processors %d\n",rank,np );
 
-    printf("ID= %d create topologies virtual %d\n",rank,np );
+    //printf("ID= %d create topologies virtual %d\n",rank,np );
     int dims[2]; // 2D matrix / grid
     dims[0]= 3; // 2 rows
     dims[1]= 3; // 2 columns
@@ -49,7 +49,7 @@ int main (int argc, char ** argv) {
     MPI_Cart_shift(grid_comm,1,1,&left,&right);
     printf("P:%d My neighbors are r: %d d:%d 1:%d u:%d\n",rank,right,down,left,up);
 */
-    printf("ID= %d Init initialize \n",rank );
+    //printf("ID= %d Init initialize \n",rank );
     srand(time(NULL) + rank); //use current time as seed for random generator
     int xsize=10, ysize=10;
     struct Matrix m = CreateNewMatrix(xsize,ysize);//x column and y row
@@ -83,7 +83,7 @@ int main (int argc, char ** argv) {
 */
 
     //printf("ID= %d finish initialize \n",rank );
-    printf("ID= %d Init check collision \n",rank );
+    //printf("ID= %d Init check collision \n",rank );
     //create 4 buffer for every processors
     pcord_t * buffer_up = (pcord_t*)calloc(ysize, sizeof(pcord_t));
     pcord_t * buffer_down = (pcord_t*)calloc(ysize, sizeof(pcord_t));
@@ -91,10 +91,10 @@ int main (int argc, char ** argv) {
     pcord_t * buffer_right = (pcord_t*)calloc(xsize, sizeof(pcord_t));
     MPI_Status status;
     int time_step=0;
+    int up,down,right,left;
+    MPI_Cart_shift(grid_comm,0,1,&up,&down);
+    MPI_Cart_shift(grid_comm,1,1,&left,&right);
     for(time_step=0; time_step<=3600;time_step++){//1 min of time_step
-        int up,down,right,left;
-        MPI_Cart_shift(grid_comm,0,1,&up,&down);
-        MPI_Cart_shift(grid_comm,1,1,&left,&right);
         //printf("P:%d My neighbors are r: %d d:%d 1:%d u:%d\n",rank,right,down,left,up);
         if(right==-1){
             for (x=0; x<xsize; x++) {
@@ -184,15 +184,15 @@ int main (int argc, char ** argv) {
 
         for (x=0; x<xsize; x++) {
             for (y=0; y<ysize; y++) {
-                    if(x==0){
+                    if(x==0 && left!=-1){
                         buffer_left[y]=*GetMatrixValue(&m,x,y);
-                    }else if(x==xsize-1){
+                    }else if(x==xsize-1 && right!=-1){
                         buffer_right[y]=*GetMatrixValue(&m,x,y);
-                    }else if(y==0){
+                    }else if(y==0 && up!=-1){
                         buffer_up[x]=*GetMatrixValue(&m,x,y);
-                    }else if(y==ysize-1){
+                    }else if(y==ysize-1 && down!=-1){
                         buffer_down[x]=*GetMatrixValue(&m,x,y);
-                    }else{
+                    }else if(x>0 && y>0 && x<xsize-1 && y<ysize-1){
                         if(collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x,y+1))==1 &&
                         collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x+1,y))==1    &&
                         collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x,y-1))==1 &&
@@ -203,65 +203,137 @@ int main (int argc, char ** argv) {
 
             }
         }
-        /*if(right!=-1){
+        if(right!=-1){
             MPI_Send(buffer_right,xsize,PART_MPI,right,RIGHTTAG,grid_comm);
             MPI_Recv(buffer_right,xsize,PART_MPI,right,LEFTTAG,grid_comm,&status);
-            //TODO work with buffer right
-        }*/
-
-
-
-
-
+            for (x=0; x<xsize; x++) {
+                if(x<xsize-1 && x>0){
+                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==1  &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), &buffer_right[x])==1){ //dont move
+                        feuler(GetMatrixValue(&m,x,ysize-1),time_step) ;
+                    }
+                }else if(x==xsize-1){
+                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), &buffer_right[x])==1){ //dont move
+                        feuler(GetMatrixValue(&m,x,ysize-1),time_step) ;
+                    }
+                }else if(x==0){
+                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), &buffer_right[x])==1){ //dont move
+                        feuler(GetMatrixValue(&m,x,ysize-1),time_step) ;
+                    }
+                }
+            }
+        }
+        if(left!=-1){
+            MPI_Send(buffer_left,xsize,PART_MPI,left,LEFTTAG,grid_comm);
+            MPI_Recv(buffer_left,xsize,PART_MPI,left,RIGHTTAG,grid_comm,&status);
+            for (x=0; x<xsize; x++) {
+                if(x<xsize-1 && x>0){
+                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==1  &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==1 &&
+                    collide(GetMatrixValue(&m,x,0), &buffer_left[x])==1){ //dont move
+                        feuler(GetMatrixValue(&m,x,0),time_step) ;
+                    }
+                }else if(x==xsize-1){
+                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==1 &&
+                    collide(GetMatrixValue(&m,x,0), &buffer_left[x])==1){ //dont move
+                        feuler(GetMatrixValue(&m,x,0),time_step) ;
+                    }
+                }else if(x==0){
+                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==1 &&
+                    collide(GetMatrixValue(&m,x,0), &buffer_left[x])==1){ //dont move
+                        feuler(GetMatrixValue(&m,x,0),time_step) ;
+                    }
+                }
+            }
+        }
+        if(up!=-1){
+            MPI_Send(buffer_up,ysize,PART_MPI,up,UPTAG,grid_comm);
+            MPI_Recv(buffer_up,ysize,PART_MPI,up,DOWNTAG,grid_comm,&status);
+            for (y=0; y<ysize; y++) {
+                if(y<ysize-1 && y>0){
+                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==1  &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==1 &&
+                    collide(GetMatrixValue(&m,0,y), &buffer_up[y])==1){ //dont move
+                        feuler(GetMatrixValue(&m,0,y),time_step) ;
+                    }
+                }else if(y==ysize-1){
+                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==1 &&
+                    collide(GetMatrixValue(&m,0,y), &buffer_up[y])==1){ //dont move
+                        feuler(GetMatrixValue(&m,0,y),time_step) ;
+                    }
+                }else if(y==0){
+                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==1 &&
+                    collide(GetMatrixValue(&m,0,y), &buffer_up[y])==1){ //dont move
+                        feuler(GetMatrixValue(&m,0,y),time_step) ;
+                    }
+                }
+            }
+        }
+        if(down!=-1){
+            MPI_Send(buffer_down,ysize,PART_MPI,down,DOWNTAG,grid_comm);
+            MPI_Recv(buffer_down,ysize,PART_MPI,down,UPTAG,grid_comm,&status);
+            for (y=0; y<ysize; y++) {
+                if(y<ysize-1 && y>0){
+                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==1  &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==1&&
+                    collide(GetMatrixValue(&m,xsize-1,y), &buffer_down[y])==1){ //dont move
+                        feuler(GetMatrixValue(&m,xsize-1,y),time_step) ;
+                    }
+                }else if(y==ysize-1){
+                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), &buffer_down[y])==1){ //dont move
+                        feuler(GetMatrixValue(&m,xsize-1,y),time_step) ;
+                    }
+                }else if(y==0){
+                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), &buffer_down[y])==1){ //dont move
+                        feuler(GetMatrixValue(&m,xsize-1,y),time_step) ;
+                    }
+                }
+            }
+        }
+        
     }
-    //printf("ID= %d finish check collision \n",rank );
+    printf("ID= %d finish check collision \n",rank );
 
 
 
 
 
 /*
-
     float totalmomentum=0;
     struct cord wall;
-    printf("ID= %d Init calculate totalmomentum  \n",rank );
-    //create wall up
     wall.x0=0;
     wall.y0=0;
     wall.x1=xsize;
-    wall.y1=0;
+    wall.y1=ysize;
+    check with all the particles
     for (x=0; x<xsize; x++) {
-        totalmomentum+=wall_collide(GetMatrixValue(&m,x,0),wall);
-    }
-    //create wall left
-    wall.x0=0;
-    wall.y0=0;
-    wall.x1=0;
-    wall.y1=ysize;
-    for (y=0; y<ysize; y++) {
-        totalmomentum+=wall_collide(GetMatrixValue(&m,0,y),wall);
-    }
-    //create wall right
-    wall.x0=xsize;
-    wall.y0=0;
-    wall.x1=xsize;
-    wall.y1=ysize;
-    for (y=0; y<ysize; y++) {
-        totalmomentum+=wall_collide(GetMatrixValue(&m,xsize-1,y),wall);
-    }
-    //create wall botton
-    wall.x0=0;
-    wall.y0=ysize;
-    wall.x1=xsize;
-    wall.y1=ysize;
-    for (x=0; x<xsize; x++) {
-        totalmomentum+=wall_collide(GetMatrixValue(&m,x,ysize-1),wall);
+        for (y=0; y<ysize; y++) {
+            totalmomentum+=wall_collide(GetMatrixValue(&m,x,y),wall);
+        }
     }
     //printf("ID= %d finish calculate totalmomentum=%lf\n",rank,totalmomentum );
+    //reduction to id =0 and printf only id==0
 
     printf("Total pressure =%lf\n", totalmomentum/(time_step*WALL_LENGTH));
-
-    freeMatrix(&m);*/
+*/
+    freeMatrix(&m);
     MPI_Finalize();
     return(0);
 }
