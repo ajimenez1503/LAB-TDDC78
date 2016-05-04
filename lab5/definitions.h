@@ -31,4 +31,10 @@ struct particle {
 typedef struct particle particle_t;
 
 
+//Tag
+#define RIGHTTAG 0
+#define LEFTTAG 1
+#define UPTAG 2
+#define DOWNTAG 3
+
 #endif
