@@ -90,7 +90,6 @@ int main (int argc, char ** argv) {
     pcord_t * buffer_down = (pcord_t*)calloc(ysize, sizeof(pcord_t));
     pcord_t * buffer_left = (pcord_t*)calloc(xsize, sizeof(pcord_t));
     pcord_t * buffer_right = (pcord_t*)calloc(xsize, sizeof(pcord_t));
-    MPI_Status status;
     MPI_Request requestLeft= MPI_REQUEST_NULL,requestRight= MPI_REQUEST_NULL,requestUp= MPI_REQUEST_NULL,requestDown= MPI_REQUEST_NULL;
     int time_step=1, max_time=3600;//1 min of time_step 60*60
     int up,down,right,left;
@@ -230,7 +229,7 @@ int main (int argc, char ** argv) {
         MPI_Wait (&requestDown, MPI_STATUS_IGNORE);
         //check interation the the left colum, with neighbors
         if(left!=-1){
-            MPI_Recv(buffer_left,xsize,PART_MPI,left,RIGHTTAG,grid_comm,&status);
+            MPI_Recv(buffer_left,xsize,PART_MPI,left,RIGHTTAG,grid_comm,MPI_STATUS_IGNORE);
             for (x=0; x<xsize; x++) {
                 if(x<xsize-1 && x>0){
                     if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
@@ -256,7 +255,7 @@ int main (int argc, char ** argv) {
         }
         //check interation the the right colum, with neighbors
         if(right!=-1){
-            MPI_Recv(buffer_right,xsize,PART_MPI,right,LEFTTAG,grid_comm,&status);
+            MPI_Recv(buffer_right,xsize,PART_MPI,right,LEFTTAG,grid_comm,MPI_STATUS_IGNORE);
             for (x=0; x<xsize; x++) {
                 if(x<xsize-1 && x>0){
                     if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
@@ -282,7 +281,7 @@ int main (int argc, char ** argv) {
         }
         //check interation the the down row, with neighbors
         if(down!=-1){
-            MPI_Recv(buffer_down,ysize,PART_MPI,down,UPTAG,grid_comm,&status);
+            MPI_Recv(buffer_down,ysize,PART_MPI,down,UPTAG,grid_comm,MPI_STATUS_IGNORE);
             for (y=0; y<ysize; y++) {
                 if(y<ysize-1 && y>0){
                     if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
@@ -308,7 +307,7 @@ int main (int argc, char ** argv) {
         }
         //check interation the the up row, with neighbors
         if(up!=-1){
-            MPI_Recv(buffer_up,ysize,PART_MPI,up,DOWNTAG,grid_comm,&status);
+            MPI_Recv(buffer_up,ysize,PART_MPI,up,DOWNTAG,grid_comm,MPI_STATUS_IGNORE);
             for (y=0; y<ysize; y++) {
                 if(y<ysize-1 && y>0){
                     if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
