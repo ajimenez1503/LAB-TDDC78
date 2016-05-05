@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include <mpi.h>
 #include "definitions.h"
@@ -95,6 +96,15 @@ int main (int argc, char ** argv) {
     MPI_Cart_shift(grid_comm,0,1,&up,&down);
     MPI_Cart_shift(grid_comm,1,1,&left,&right);
     //printf("P:%d My neighbors are r: %d d:%d 1:%d u:%d\n",rank,right,down,left,up);
+
+    //syncronize
+    MPI_Barrier(grid_comm);
+    struct timespec stime, etime;
+    if(rank==0){
+        clock_gettime(CLOCK_REALTIME, &stime);
+    }
+
+
     for(time_step=1; time_step<=max_time;time_step++){
         //check interation inside of the matrix. And calculate the buffer in the case of have neighbour
         for (x=0; x<xsize; x++) {
@@ -341,6 +351,8 @@ int main (int argc, char ** argv) {
     MPI_Reduce( &momentum, &global_momentum, 1,MPI_FLOAT, MPI_SUM, 0,grid_comm );
     //reduction to id =0 and printf only id==0
     if(rank==0){
+        clock_gettime(CLOCK_REALTIME, &etime);
+        printf("simulation took: %g secs\n", (etime.tv_sec  - stime.tv_sec) +1e-9*(etime.tv_nsec  - stime.tv_nsec)) ;
         printf("finish calculate totalmomentum=%lf\n",global_momentum );
         printf("Total pressure =%lf\n", global_momentum/(time_step*WALL_LENGTH));
     }
