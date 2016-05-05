@@ -91,6 +91,7 @@ int main (int argc, char ** argv) {
     pcord_t * buffer_left = (pcord_t*)calloc(xsize, sizeof(pcord_t));
     pcord_t * buffer_right = (pcord_t*)calloc(xsize, sizeof(pcord_t));
     MPI_Status status;
+    MPI_Request requestLeft= MPI_REQUEST_NULL,requestRight= MPI_REQUEST_NULL,requestUp= MPI_REQUEST_NULL,requestDown= MPI_REQUEST_NULL;
     int time_step=1, max_time=3600;//1 min of time_step 60*60
     int up,down,right,left;
     MPI_Cart_shift(grid_comm,0,1,&up,&down);
@@ -149,7 +150,7 @@ int main (int argc, char ** argv) {
                 }
             }
         }else{//if it has neighbour send buffer
-            MPI_Send(buffer_right,xsize,PART_MPI,right,RIGHTTAG,grid_comm);
+            MPI_Isend(buffer_right,xsize,PART_MPI,right,RIGHTTAG,grid_comm,&requestRight);
         }
         //check interation the the left colum, without neighbors
         if(left==-1){
@@ -173,7 +174,7 @@ int main (int argc, char ** argv) {
                 }
             }
         }else{//if it has neighbour send buffer
-            MPI_Send(buffer_left,xsize,PART_MPI,left,LEFTTAG,grid_comm);
+            MPI_Isend(buffer_left,xsize,PART_MPI,left,LEFTTAG,grid_comm,&requestLeft);
         }
         //check interation the the up row, without neighbors
         if(up==-1){
@@ -197,7 +198,7 @@ int main (int argc, char ** argv) {
                 }
             }
         }else{//if it has neighbour send buffer
-            MPI_Send(buffer_up,ysize,PART_MPI,up,UPTAG,grid_comm);
+            MPI_Isend(buffer_up,ysize,PART_MPI,up,UPTAG,grid_comm,&requestUp);
         }
         //check interation the the down row, without neighbors
         if(down==-1){
@@ -221,8 +222,12 @@ int main (int argc, char ** argv) {
                 }
             }
         }else{//if it has neighbour send buffer
-            MPI_Send(buffer_down,ysize,PART_MPI,down,DOWNTAG,grid_comm);
+            MPI_Isend(buffer_down,ysize,PART_MPI,down,DOWNTAG,grid_comm,&requestDown);
         }
+        MPI_Wait (&requestLeft, MPI_STATUS_IGNORE);
+        MPI_Wait (&requestRight,  MPI_STATUS_IGNORE);
+        MPI_Wait (&requestUp,  MPI_STATUS_IGNORE);
+        MPI_Wait (&requestDown, MPI_STATUS_IGNORE);
         //check interation the the left colum, with neighbors
         if(left!=-1){
             MPI_Recv(buffer_left,xsize,PART_MPI,left,RIGHTTAG,grid_comm,&status);
