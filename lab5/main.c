@@ -320,9 +320,10 @@ int main (int argc, char ** argv) {
 
 
     }
-    printf("ID= %d finish check collision \n",rank );
-    //TODO barrier
-/*
+    //printf("ID= %d finish check collision \n",rank );
+    //T barrier
+    MPI_Barrier(grid_comm);
+
     float momentum=0;
     //define wall
     struct cord wall;
@@ -330,20 +331,19 @@ int main (int argc, char ** argv) {
     wall.y0=0;
     wall.x1=xsize-1;
     wall.y1=ysize-1;
-    check with all the particles
+    //check with all the particles
     for (x=0; x<xsize; x++) {
         for (y=0; y<ysize; y++) {
             momentum+=wall_collide(GetMatrixValue(&m,x,y),wall);
         }
     }
-    //printf("ID= %d finish calculate totalmomentum=%lf\n",rank,totalmomentum );
-    MPIReduce( momentum, momentum, 1,MPI_FLOAT, SUM, 0,grid_comm );
+    float global_momentum;
+    MPI_Reduce( &momentum, &global_momentum, 1,MPI_FLOAT, MPI_SUM, 0,grid_comm );
     //reduction to id =0 and printf only id==0
     if(rank==0){
-        printf("finish calculate totalmomentum=%lf\n",momentum );
-        printf("Total pressure =%lf\n", momentum/(time_step*WALL_LENGTH));
+        printf("finish calculate totalmomentum=%lf\n",global_momentum );
+        printf("Total pressure =%lf\n", global_momentum/(time_step*WALL_LENGTH));
     }
-*/
     freeMatrix(&m);
     MPI_Finalize();
     return(0);
