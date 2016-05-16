@@ -53,7 +53,7 @@ int main (int argc, char ** argv) {
 */
     //printf("ID= %d Init initialize \n",rank );
     srand(time(NULL) + rank); //use current time as seed for random generator
-    int xsize=10, ysize=10;
+    int xsize=100, ysize=100;
     struct Matrix m = CreateNewMatrix(xsize,ysize);//x column and y row
     struct part_cord aux_part;
     float r=0, omega=0;
@@ -62,8 +62,8 @@ int main (int argc, char ** argv) {
         for (y=0; y<ysize; y++) {
             int coord[2]; // Cartesian Process coordinates
             MPI_Cart_coords(grid_comm,rank,2,coord);
-            aux_part.y=y+coord[1]*ysize;//TODO take account of rank
-            aux_part.x=x+coord[0]*xsize;//TODO take account of rank
+            aux_part.y=y+coord[1]*ysize;// take account of rank
+            aux_part.x=x+coord[0]*xsize;// take account of rank
             r=rand()*MAX_INITIAL_VELOCITY;
             omega=rand()*2*PI;
             aux_part.vx=r*cos(omega);
@@ -97,7 +97,7 @@ int main (int argc, char ** argv) {
     MPI_Cart_shift(grid_comm,1,1,&left,&right);
     //printf("P:%d My neighbors are r: %d d:%d 1:%d u:%d\n",rank,right,down,left,up);
 
-    //syncronize
+    //synchronize
     MPI_Barrier(grid_comm);
     struct timespec stime, etime;
     if(rank==0){
@@ -118,10 +118,10 @@ int main (int argc, char ** argv) {
                 }else if(y==ysize-1 && down!=-1){
                     buffer_down[x]=*GetMatrixValue(&m,x,y);
                 }else if(x>0 && y>0 && x<xsize-1 && y<ysize-1){
-                    if(collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x,y+1))==1 &&
-                    collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x+1,y))==1    &&
-                    collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x,y-1))==1 &&
-                    collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x-1,y))==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x,y+1))==-1 &&
+                    collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x+1,y))==-1    &&
+                    collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x,y-1))==-1 &&
+                    collide(GetMatrixValue(&m,x,y), GetMatrixValue(&m,x-1,y))==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,y),time_step) ;
                     }
                 }
@@ -131,19 +131,19 @@ int main (int argc, char ** argv) {
         if(right==-1){
             for (x=0; x<xsize; x++) {
                 if(x<xsize-1 && x>0){
-                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
-                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==1  &&
-                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==-1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==-1  &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,ysize-1),time_step) ;
                     }
                 }else if(x==xsize-1){
-                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
-                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==-1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,ysize-1),time_step) ;
                     }
                 }else if(x==0){
-                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
-                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==-1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,ysize-1),time_step) ;
                     }
                 }
@@ -155,19 +155,19 @@ int main (int argc, char ** argv) {
         if(left==-1){
             for (x=0; x<xsize; x++) {
                 if(x<xsize-1 && x>0){
-                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
-                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==1  &&
-                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==-1 &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==-1  &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,0),time_step) ;
                     }
                 }else if(x==xsize-1){
-                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
-                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==-1 &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,0),time_step) ;
                     }
                 }else if(x==0){
-                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
-                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==-1 &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,0),time_step) ;
                     }
                 }
@@ -179,19 +179,19 @@ int main (int argc, char ** argv) {
         if(up==-1){
             for (y=0; y<ysize; y++) {
                 if(y<ysize-1 && y>0){
-                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
-                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==1  &&
-                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==1){ //dont move
+                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==-1 &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==-1  &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==-1){ //dont move
                         feuler(GetMatrixValue(&m,0,y),time_step) ;
                     }
                 }else if(y==ysize-1){
-                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
-                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==1 ){ //dont move
+                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==-1 &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==-1 ){ //dont move
                         feuler(GetMatrixValue(&m,0,y),time_step) ;
                     }
                 }else if(y==0){
-                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
-                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==1 ){ //dont move
+                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==-1 &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==-1 ){ //dont move
                         feuler(GetMatrixValue(&m,0,y),time_step) ;
                     }
                 }
@@ -203,19 +203,19 @@ int main (int argc, char ** argv) {
         if(down==-1){
             for (y=0; y<ysize; y++) {
                 if(y<ysize-1 && y>0){
-                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
-                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==1  &&
-                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==1){ //dont move
+                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==-1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==-1  &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==-1){ //dont move
                         feuler(GetMatrixValue(&m,xsize-1,y),time_step) ;
                     }
                 }else if(y==ysize-1){
-                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
-                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==1 ){ //dont move
+                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==-1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==-1 ){ //dont move
                         feuler(GetMatrixValue(&m,xsize-1,y),time_step) ;
                     }
                 }else if(y==0){
-                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
-                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==1 ){ //dont move
+                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==-1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==-1 ){ //dont move
                         feuler(GetMatrixValue(&m,xsize-1,y),time_step) ;
                     }
                 }
@@ -232,22 +232,22 @@ int main (int argc, char ** argv) {
             MPI_Recv(buffer_left,xsize,PART_MPI,left,RIGHTTAG,grid_comm,MPI_STATUS_IGNORE);
             for (x=0; x<xsize; x++) {
                 if(x<xsize-1 && x>0){
-                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
-                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==1  &&
-                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==1 &&
-                    collide(GetMatrixValue(&m,x,0), &buffer_left[x])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==-1 &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==-1  &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==-1 &&
+                    collide(GetMatrixValue(&m,x,0), &buffer_left[x])==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,0),time_step) ;
                     }
                 }else if(x==xsize-1){
-                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
-                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==1 &&
-                    collide(GetMatrixValue(&m,x,0), &buffer_left[x])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==-1 &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x-1,0))==-1 &&
+                    collide(GetMatrixValue(&m,x,0), &buffer_left[x])==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,0),time_step) ;
                     }
                 }else if(x==0){
-                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==1 &&
-                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==1 &&
-                    collide(GetMatrixValue(&m,x,0), &buffer_left[x])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x,1))==-1 &&
+                    collide(GetMatrixValue(&m,x,0), GetMatrixValue(&m,x+1,0))==-1 &&
+                    collide(GetMatrixValue(&m,x,0), &buffer_left[x])==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,0),time_step) ;
                     }
                 }
@@ -258,22 +258,22 @@ int main (int argc, char ** argv) {
             MPI_Recv(buffer_right,xsize,PART_MPI,right,LEFTTAG,grid_comm,MPI_STATUS_IGNORE);
             for (x=0; x<xsize; x++) {
                 if(x<xsize-1 && x>0){
-                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
-                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==1  &&
-                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==1 &&
-                    collide(GetMatrixValue(&m,x,ysize-1), &buffer_right[x])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==-1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==-1  &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==-1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), &buffer_right[x])==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,ysize-1),time_step) ;
                     }
                 }else if(x==xsize-1){
-                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
-                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==1 &&
-                    collide(GetMatrixValue(&m,x,ysize-1), &buffer_right[x])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==-1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x-1,ysize-1))==-1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), &buffer_right[x])==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,ysize-1),time_step) ;
                     }
                 }else if(x==0){
-                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==1 &&
-                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==1 &&
-                    collide(GetMatrixValue(&m,x,ysize-1), &buffer_right[x])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x,ysize-2))==-1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), GetMatrixValue(&m,x+1,ysize-1))==-1 &&
+                    collide(GetMatrixValue(&m,x,ysize-1), &buffer_right[x])==-1){ //dont move
                         feuler(GetMatrixValue(&m,x,ysize-1),time_step) ;
                     }
                 }
@@ -284,22 +284,22 @@ int main (int argc, char ** argv) {
             MPI_Recv(buffer_down,ysize,PART_MPI,down,UPTAG,grid_comm,MPI_STATUS_IGNORE);
             for (y=0; y<ysize; y++) {
                 if(y<ysize-1 && y>0){
-                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
-                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==1  &&
-                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==1&&
-                    collide(GetMatrixValue(&m,xsize-1,y), &buffer_down[y])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==-1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==-1  &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==-1&&
+                    collide(GetMatrixValue(&m,xsize-1,y), &buffer_down[y])==-1){ //dont move
                         feuler(GetMatrixValue(&m,xsize-1,y),time_step) ;
                     }
                 }else if(y==ysize-1){
-                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
-                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==1 &&
-                    collide(GetMatrixValue(&m,xsize-1,y), &buffer_down[y])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==-1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y-1))==-1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), &buffer_down[y])==-1){ //dont move
                         feuler(GetMatrixValue(&m,xsize-1,y),time_step) ;
                     }
                 }else if(y==0){
-                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==1 &&
-                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==1 &&
-                    collide(GetMatrixValue(&m,xsize-1,y), &buffer_down[y])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-2,y))==-1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), GetMatrixValue(&m,xsize-1,y+1))==-1 &&
+                    collide(GetMatrixValue(&m,xsize-1,y), &buffer_down[y])==-1){ //dont move
                         feuler(GetMatrixValue(&m,xsize-1,y),time_step) ;
                     }
                 }
@@ -310,22 +310,22 @@ int main (int argc, char ** argv) {
             MPI_Recv(buffer_up,ysize,PART_MPI,up,DOWNTAG,grid_comm,MPI_STATUS_IGNORE);
             for (y=0; y<ysize; y++) {
                 if(y<ysize-1 && y>0){
-                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
-                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==1  &&
-                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==1 &&
-                    collide(GetMatrixValue(&m,0,y), &buffer_up[y])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==-1 &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==-1  &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==-1 &&
+                    collide(GetMatrixValue(&m,0,y), &buffer_up[y])==-1){ //dont move
                         feuler(GetMatrixValue(&m,0,y),time_step) ;
                     }
                 }else if(y==ysize-1){
-                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
-                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==1 &&
-                    collide(GetMatrixValue(&m,0,y), &buffer_up[y])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==-1 &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y-1))==-1 &&
+                    collide(GetMatrixValue(&m,0,y), &buffer_up[y])==-1){ //dont move
                         feuler(GetMatrixValue(&m,0,y),time_step) ;
                     }
                 }else if(y==0){
-                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==1 &&
-                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==1 &&
-                    collide(GetMatrixValue(&m,0,y), &buffer_up[y])==1){ //dont move
+                    if(collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,1,y))==-1 &&
+                    collide(GetMatrixValue(&m,0,y), GetMatrixValue(&m,0,y+1))==-1 &&
+                    collide(GetMatrixValue(&m,0,y), &buffer_up[y])==-1){ //dont move
                         feuler(GetMatrixValue(&m,0,y),time_step) ;
                     }
                 }
